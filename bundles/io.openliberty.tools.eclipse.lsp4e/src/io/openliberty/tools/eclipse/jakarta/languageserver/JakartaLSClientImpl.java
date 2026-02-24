@@ -1,12 +1,12 @@
-/******************************************************************************* 
- * Copyright (c) 2019 Red Hat, Inc. 
- * Distributed under license by Red Hat, Inc. All rights reserved. 
- * This program is made available under the terms of the 
- * Eclipse Public License v1.0 which accompanies this distribution, 
- * and is available at http://www.eclipse.org/legal/epl-v10.html 
- * 
- * Contributors: 
- * Red Hat, Inc. - initial API and implementation 
+/*******************************************************************************
+ * Copyright (c) 2019 Red Hat, Inc.
+ * Distributed under license by Red Hat, Inc. All rights reserved.
+ * This program is made available under the terms of the
+ * Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
 /**
  * This class is a copy/paste of jbosstools-quarkus language server plugin
@@ -18,11 +18,13 @@ package io.openliberty.tools.eclipse.jakarta.languageserver;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.lsp4e.LanguageClientImpl;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CompletionList;
@@ -44,6 +46,9 @@ import org.eclipse.lsp4jakarta.jdt.core.ProjectLabelManager;
 import org.eclipse.lsp4jakarta.jdt.core.PropertiesManagerForJava;
 import org.eclipse.lsp4jakarta.jdt.internal.core.ls.JDTUtilsLSImpl;
 import org.eclipse.lsp4jakarta.ls.api.JakartaLanguageClientAPI;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
 
@@ -169,6 +174,67 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return null;
             }
+        });
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public CompletableFuture<String> selectJakartaVersion(Map<String, Object> params) {
+        return CompletableFuture.supplyAsync(() -> {
+            final String[] selectedVersion = new String[1];
+            
+            try {
+                // Extract parameters
+                String projectUri = (String) params.get("projectUri");
+                List<String> versions = (List<String>) params.get("versions");
+                
+                if (versions == null || versions.isEmpty()) {
+                    LibertyToolsLSPlugin.logException("No Jakarta EE versions provided", null);
+                    return null;
+                }
+                
+                // Convert version numbers to display strings
+                String[] versionLabels = versions.stream()
+                    .map(v -> "Jakarta EE " + v)
+                    .toArray(String[]::new);
+                
+                // Run on UI thread
+                Display.getDefault().syncExec(() -> {
+                    try {
+                        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                        
+                        // Create a simple selection dialog
+                        MessageDialog dialog = new MessageDialog(
+                            shell,
+                            "Select Jakarta EE Version",
+                            null,
+                            "Please select the Jakarta EE version for this project:\n" + projectUri,
+                            MessageDialog.QUESTION,
+                            0, // default button index
+                            versionLabels
+                        );
+                        
+                        int result = dialog.open();
+                        
+                        if (result >= 0 && result < versions.size()) {
+                            // Return the version number (not the display label)
+                            selectedVersion[0] = versions.get(result);
+                        }
+                        // If cancelled or closed, selectedVersion[0] remains null
+                        
+                    } catch (Exception e) {
+                        LibertyToolsLSPlugin.logException("Error showing Jakarta EE version selection dialog", e);
+                    }
+                });
+                
+            } catch (Exception e) {
+                LibertyToolsLSPlugin.logException("Error in selectJakartaVersion", e);
+            }
+            
+            return selectedVersion[0];
         });
     }
 }

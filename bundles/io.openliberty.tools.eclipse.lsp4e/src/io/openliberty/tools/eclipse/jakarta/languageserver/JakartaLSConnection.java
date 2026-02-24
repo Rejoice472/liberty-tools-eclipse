@@ -88,6 +88,11 @@ public class JakartaLSConnection extends ProcessStreamConnectionProvider {
         jakarta.put("tools", tools);
         settings.put("jakararta", jakarta);
         root.put("settings", settings);
+        
+        // Add experimental capabilities
+        Map<String, Object> extendedClientCapabilities = new HashMap<>();
+        extendedClientCapabilities.put("jakartaVersionSelector", true);
+        root.put("extendedClientCapabilities", extendedClientCapabilities);
 
         return root;
     }
