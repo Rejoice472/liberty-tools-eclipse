@@ -182,6 +182,41 @@
       <contentTypeMapping
             contentType="org.eclipse.jdt.core.javaSource"
             id="io.openliberty.tools.eclipse.org.liberty.jakartalangserver">
-      </contentTypeMapping>  
+      </contentTypeMapping>
+   </extension>
+   
+   <!-- Jakarta EE Version Reset Command -->
+   <extension point="org.eclipse.ui.commands">
+      <command
+            id="io.openliberty.tools.eclipse.jakarta.resetVersion"
+            name="Reset Jakarta EE Version"
+            description="Reset the Jakarta EE version for the selected project">
+      </command>
+   </extension>
+   
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            commandId="io.openliberty.tools.eclipse.jakarta.resetVersion"
+            class="io.openliberty.tools.eclipse.jakarta.ui.ResetJakartaVersionHandler">
+      </handler>
+   </extension>
+   
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+         <command
+               commandId="io.openliberty.tools.eclipse.jakarta.resetVersion"
+               label="Reset Jakarta EE Version"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IProject"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
    </extension>
 </plugin>
