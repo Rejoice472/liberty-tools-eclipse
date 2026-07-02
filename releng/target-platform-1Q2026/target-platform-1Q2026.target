@@ -67,16 +67,22 @@
             <unit id="org.eclipse.lsp4e.jdt" version="0.14.2.202512150839"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/jdtls/milestones/1.58.0/repository/"/>
+            <repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.58.0.202604151538/"/>
             <unit id="org.eclipse.jdt.ls.core" version="1.58.0.202604151538"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/buildship/updates/e427/releases/3.x/3.1.9.v20240115-1636/"/>
             <unit id="org.eclipse.buildship.ui" version="3.1.9.v20240115-1636"/>
         </location>
-	    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		    <repository location="https://download.eclipse.org/lsp4jakarta/snapshots/0.2.6/repository/"/>
-		    <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.6.20260608-1242"/>
+	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
+	     <dependencies>
+	      <dependency>
+	       <groupId>org.eclipse.lsp4jakarta</groupId>
+	       <artifactId>org.eclipse.lsp4jakarta.jdt.core</artifactId>
+	       <version>0.2.6-SNAPSHOT</version>
+	       <type>jar</type>
+	      </dependency>
+	     </dependencies>
 	    </location>
 	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
 		    <dependencies>
