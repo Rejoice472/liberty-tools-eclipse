@@ -62,50 +62,56 @@
             <unit id="org.eclipse.lsp4j.jsonrpc" version="0.24.0.v20250131-1745"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/jdtls/milestones/1.56.0/repository/"/>
+            <repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.56.0.202601291528/"/>
             <unit id="org.eclipse.jdt.ls.core" version="1.56.0.202601291528"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/buildship/updates/e427/releases/3.x/3.1.9.v20240115-1636/"/>
             <unit id="org.eclipse.buildship.ui" version="3.1.9.v20240115-1636"/>
         </location>
-	    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		    <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.5/repository/"/>
-		    <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.5"/>
+	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
+	     <dependencies>
+	      <dependency>
+	       <groupId>org.eclipse.lsp4jakarta</groupId>
+	       <artifactId>org.eclipse.lsp4jakarta.jdt.core</artifactId>
+	       <version>0.2.6-SNAPSHOT</version>
+	       <type>jar</type>
+	      </dependency>
+	     </dependencies>
 	    </location>
 	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
-		    <dependencies>
-			    <dependency>
-				    <groupId>net.bytebuddy</groupId>
-				    <artifactId>byte-buddy-agent</artifactId>
-				    <version>1.14.18</version>
-				    <type>jar</type>
-			    </dependency>
-			    <dependency>
-				    <groupId>net.bytebuddy</groupId>
-				    <artifactId>byte-buddy</artifactId>
-				    <version>1.14.18</version>
-				    <type>jar</type>
-			    </dependency>
-			    <dependency>
-				    <groupId>org.mockito</groupId>
-				    <artifactId>mockito-core</artifactId>
-				    <version>5.12.0</version>
-				    <type>jar</type>
-			    </dependency>
-			    <dependency>
-				    <groupId>org.mockito</groupId>
-				    <artifactId>mockito-junit-jupiter</artifactId>
-				    <version>5.12.0</version>
-				    <type>jar</type>
-			    </dependency>
-			    <dependency>
-				    <groupId>org.objenesis</groupId>
-				    <artifactId>objenesis</artifactId>
-				    <version>3.4</version>
-				    <type>jar</type>
-			    </dependency>
-		    </dependencies>
+	     <dependencies>
+	      <dependency>
+	       <groupId>net.bytebuddy</groupId>
+	       <artifactId>byte-buddy-agent</artifactId>
+	       <version>1.14.18</version>
+	       <type>jar</type>
+	      </dependency>
+	      <dependency>
+	       <groupId>net.bytebuddy</groupId>
+	       <artifactId>byte-buddy</artifactId>
+	       <version>1.14.18</version>
+	       <type>jar</type>
+	      </dependency>
+	      <dependency>
+	       <groupId>org.mockito</groupId>
+	       <artifactId>mockito-core</artifactId>
+	       <version>5.12.0</version>
+	       <type>jar</type>
+	      </dependency>
+	      <dependency>
+	       <groupId>org.mockito</groupId>
+	       <artifactId>mockito-junit-jupiter</artifactId>
+	       <version>5.12.0</version>
+	       <type>jar</type>
+	      </dependency>
+	      <dependency>
+	       <groupId>org.objenesis</groupId>
+	       <artifactId>objenesis</artifactId>
+	       <version>3.4</version>
+	       <type>jar</type>
+	      </dependency>
+	     </dependencies>
 	    </location>
     </locations>
 </target>
