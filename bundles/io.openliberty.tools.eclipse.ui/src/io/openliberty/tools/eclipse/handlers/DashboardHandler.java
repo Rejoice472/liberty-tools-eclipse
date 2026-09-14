@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,15 +18,19 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 
 public class DashboardHandler extends AbstractHandler {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         try {
             HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView("io.openliberty.tools.eclipse.views.liberty.devmode.dashboard");
         } catch (Exception e) {
-            String msg = "Unable to open the Liberty dashboard view";
+            String msg = Messages.getMessage("dashboard_open_error");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg, e);
             }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,7 +19,6 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferenceDialog;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -41,6 +40,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -139,7 +139,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             configuration.setAttribute(PROJECT_NAME, activeProject.getName());
         }
 
-        configuration.setAttribute(PROJECT_START_PARM, getDefaultStartCommand(activeProject));
+        configuration.setAttribute(PROJECT_START_PARM, "");
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, false);
 
@@ -172,8 +172,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
             if (projectName == null) {
-                super.setErrorMessage(
-                                      "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
+                super.setErrorMessage(Messages.getMessage("run_config_no_project_selected"));
             } else {
                 projectNameLabel.setText(projectName);
             }
@@ -185,7 +184,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_config_initialize_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_config_initialize_error"), ce, true);
         }
 
         if (Trace.isEnabled()) {
@@ -198,44 +197,55 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         String startParamStr = startParmText.getText();
 
         if (startParamStr.startsWith("mvn") || startParamStr.startsWith("gradle")) {
-            super.setErrorMessage("Don't include mvn or gradle executables, just the parameters");
+            super.setErrorMessage(Messages.getMessage("start_params_error"));
             valid = false;
         }
         if (startParamStr.contains("liberty:dev") || startParamStr.contains("libertyDev")) {
-            super.setErrorMessage("Dev mode detected");
+            super.setErrorMessage(Messages.getMessage("dev_mode_detected_error"));
             valid = false;
         }
         return valid;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isValid(ILaunchConfiguration config) {
         try {
             String configProjectName = config.getAttribute(PROJECT_NAME, (String) null);
 
             if (configProjectName == null) {
-                super.setErrorMessage(
-                                      "This Run/Debug config is corrupted and can't be used since no project was selected before creating. To create a new Run/Debug config first select a project in the Liberty dashboard, Project/Package explorer view, or via editor.");
+                super.setErrorMessage(Messages.getMessage("run_config_corrupted"));
                 return false;
             }
 
             IProject selectedProject = Utils.getActiveProject();
+            ProjectModel selectedProjectModel = null;
             if (selectedProject != null) {
-                String selectedProjectName = selectedProject.getName();
+                String projectLocation = selectedProject.getLocation().toOSString();
+                selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(projectLocation);
+
+                // Validate that we know about the selected project.
+                if (selectedProjectModel == null) {
+                    super.setErrorMessage(Messages.getMessage("internal_project_not_found", selectedProject.getName()));
+                    return false;
+                }
+
+                String selectedProjectName = selectedProjectModel.getName();
                 if (!configProjectName.equals(selectedProjectName)) {
-                    super.setWarningMessage(
-                                            "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
+                    super.setWarningMessage(Messages.getMessage("config_project_warning", selectedProjectName));
                     return false;
                 }
             }
 
             // Check if project is already started
-            if (devModeOps.isProjectStarted(configProjectName)) {
+            if (selectedProjectModel != null && devModeOps.isProjectStarted(selectedProjectModel)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + configProjectName);
                 }
 
-                super.setErrorMessage(NLS.bind(Messages.start_already_issued, configProjectName));
+                super.setErrorMessage(Messages.getMessage("start_already_issued", selectedProjectModel.getName()));
                 return false;
             }
         } catch (CoreException ce) {
@@ -243,7 +253,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("project_name_error"), ce, true);
             return false;
         }
         return checkForIncorrectTerms();
@@ -335,7 +345,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Label projectLabel = new Label(projectComposite, SWT.NONE);
         projectLabel.setFont(font);
-        projectLabel.setText("Project: ");
+        projectLabel.setText(Messages.getMessage("project_label"));
         GridDataFactory.swtDefaults().applyTo(projectLabel);
 
         projectNameLabel = new Label(projectComposite, SWT.NONE);
@@ -352,7 +362,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     private void createInputParmText(Composite parent) {
         Label inputParmLabel = new Label(parent, SWT.NONE);
         inputParmLabel.setFont(font);
-        inputParmLabel.setText("Start &parameters:");
+        inputParmLabel.setText(Messages.getMessage("start_parameters_label"));
         GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
 
         startParmText = new Text(parent, SWT.BORDER);
@@ -385,7 +395,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Link link = new Link(parent, SWT.WRAP);
         link.setFont(font);
-        link.setText("Maven/Gradle executable paths can be set in <a>Liberty Preferences</a>");
+        link.setText(Messages.getMessage("maven_gradle_prefs_link"));
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -403,7 +413,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     private void createRunInContainerButton(Composite parent) {
         runInContainerCheckBox = new Button(parent, SWT.CHECK);
-        runInContainerCheckBox.setText("Run in &Container");
+        runInContainerCheckBox.setText(Messages.getMessage("run_in_container_label"));
         runInContainerCheckBox.setSelection(false);
         runInContainerCheckBox.setFont(font);
         runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
@@ -430,7 +440,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     private void createProjectCleanButton(Composite parent) {
         projectCleanCheckBox = new Button(parent, SWT.CHECK);
-        projectCleanCheckBox.setText("Clean project");
+        projectCleanCheckBox.setText(Messages.getMessage("clean_project_label"));
         projectCleanCheckBox.setSelection(false);
         projectCleanCheckBox.setFont(font);
         projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
@@ -448,33 +458,5 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Label emptyColumnLabel = new Label(parent, SWT.NONE);
         GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
-    }
-
-    /**
-     * Returns the default start parameters.
-     * 
-     * @param Active project (may be null if there isn't one)
-     * 
-     * @return The default start parameters
-     */
-    private String getDefaultStartCommand(IProject iProject) {
-        String parms = "";
-        try {
-            if (iProject != null) {
-                // Verify that the existing projects are projects are read and classified. This maybe the first time
-                // this plugin's function is being used.
-                devModeOps.verifyProjectSupport(iProject);
-                parms = devModeOps.getProjectModel().getDefaultStartParameters(iProject);
-            }
-        } catch (Exception e) {
-            // Report the issue and continue without a initial start command.
-            String msg = "An error was detected when the default start parameters were retrieved.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
-            }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_parm_retrieve_error, null), e, true);
-        }
-
-        return parms;
     }
 }

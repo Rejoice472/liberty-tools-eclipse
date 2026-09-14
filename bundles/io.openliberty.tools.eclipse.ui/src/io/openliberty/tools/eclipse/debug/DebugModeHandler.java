@@ -60,9 +60,10 @@ import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
-import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -114,7 +115,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public String addDebugDataToStartParms(Project project, String debugPort, String configParms) throws Exception {
+    public String addDebugDataToStartParms(ProjectModel project, String debugPort, String configParms) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort, configParms });
         }
@@ -124,17 +125,16 @@ public class DebugModeHandler {
 
         if (debugPort != null && !debugPort.isEmpty()) {
             BuildType buildType = project.getBuildType();
-            if (buildType == BuildType.MAVEN) {
+            if (buildType == BuildType.Maven) {
                 if (!configParms.contains(MAVEN_DEVMODE_DEBUG_PORT_PARM)) {
                     addendum = MAVEN_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
                 }
-            } else if (buildType == BuildType.GRADLE) {
+            } else if (buildType == BuildType.Gradle) {
                 if (!configParms.contains(GRADLE_DEVMODE_DEBUG_PORT_PARM)) {
                     addendum = GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
                 }
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project" + project.getIProject().getName()
-                                    + "does not appear to be a Maven or Gradle built project.");
+                throw new Exception(Messages.getMessage("unexpected_build_type", buildType, project.getIProject().getName()));
             }
         }
 
@@ -145,7 +145,7 @@ public class DebugModeHandler {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, startParms });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
 
         return startParms;
@@ -159,7 +159,7 @@ public class DebugModeHandler {
      * 
      * @return The debug port to be used.
      */
-    public String calculateDebugPort(Project project, String inputParms) throws Exception {
+    public String calculateDebugPort(ProjectModel project, String inputParms) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, inputParms });
         }
@@ -170,13 +170,12 @@ public class DebugModeHandler {
         String searchKey = null;
 
         BuildType buildType = project.getBuildType();
-        if (buildType == BuildType.MAVEN) {
+        if (buildType == BuildType.Maven) {
             searchKey = MAVEN_DEVMODE_DEBUG_PORT_PARM;
-        } else if (buildType == BuildType.GRADLE) {
+        } else if (buildType == BuildType.Gradle) {
             searchKey = GRADLE_DEVMODE_DEBUG_PORT_PARM;
         } else {
-            throw new Exception("Unexpected project build type: " + buildType + ". Project " + project.getIProject().getName()
-                                + "does not appear to be a Maven or Gradle built project.");
+            throw new Exception(Messages.getMessage("unexpected_build_type", buildType, project.getIProject().getName()));
         }
 
         if (inputParms.contains(searchKey)) {
@@ -199,11 +198,10 @@ public class DebugModeHandler {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, debugPort);
         }
 
         return debugPort;
-
     }
 
     /**
@@ -215,10 +213,12 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public void startDebugAttacher(Project project, ILaunch launch, String port) {
-        String projectName = project.getIProject().getName();
+    public void startDebugAttacher(ProjectModel project, ILaunch launch, String port) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, port });
+        }
 
-        Job job = new Job("Attaching Debugger to JVM...") {
+        Job job = new Job(Messages.getMessage("attaching_debugger_job")) {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
@@ -254,7 +254,7 @@ public class DebugModeHandler {
                         if (debugPort == null) {
                             // We failed to read the debug port. Throw an exception. This will be caught by the outer
                             // catch block and the job will return with an error.
-                            String errorMessage = "Failed to read debug port from server.env file";
+                            String errorMessage = Messages.getMessage("debug_port_read_error");
                             if (ex[0] != null) {
                                 // Add the last exception we got.
                                 throw new Exception(errorMessage, ex[0]);
@@ -281,7 +281,7 @@ public class DebugModeHandler {
                     launch.addDebugTarget(debugTarget);
 
                 } catch (Exception e) {
-                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR, "An error was detected while attaching the debugger to the JVM.", e);
+                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR, Messages.getMessage("debugger_attach_error"), e);
                 }
 
                 return Status.OK_STATUS;
@@ -318,6 +318,10 @@ public class DebugModeHandler {
         });
 
         job.schedule();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+        }
     }
 
     private AttachingConnector getAttachingConnector() {
@@ -411,7 +415,7 @@ public class DebugModeHandler {
             } catch (IOException e) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI,
-                                            "Error occurred while trying to connect to the remote virtual machine " + e.getMessage(), e);
+                                            Messages.getMessage("debugger_connect_error", e.getMessage()), e);
                 }
             } catch (TimeoutException e2) {
                 // do nothing
@@ -482,7 +486,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    private Path getServerEnvFile(Project project) throws Exception {
+    private Path getServerEnvFile(ProjectModel project) throws Exception {
 
         Path libertyPluginConfigXmlPath = devModeOps.getLibertyPluginConfigXmlPath(project);
 
@@ -553,11 +557,11 @@ public class DebugModeHandler {
      * @param port    The port to connect to.
      * @param monitor The progress monitor instance.
      * 
-     * @returns The port that the debugger actually connected to.
+     * @return The port that the debugger actually connected to.
      * 
      * @throws Exception
      */
-    private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
+    private String waitForSocketActivation(ProjectModel project, String host, String port, IProgressMonitor monitor) throws Exception {
 
         // This is the first of several timeout mechanisms during the debugger connection. This method
         // will attempt a write to the debug port of the target VM (Liberty server) once every second for
@@ -577,7 +581,7 @@ public class DebugModeHandler {
             }
 
             // Abort if the project has stopped
-            if (!devModeOps.isProjectStarted(project.getIProject().getName())) {
+            if (!devModeOps.isProjectStarted(project)) {
                 return null;
             }
 
@@ -588,12 +592,6 @@ public class DebugModeHandler {
                 TimeUnit.SECONDS.sleep(1);
             }
         }
-
-        throw new Exception("Timed out trying to attach the debugger to JVM on host: " + host + " and port: " + port
-                            + ".  If the server starts later you might try to manually connect the debugger from the launch in the Debug view  You can confirm the debug port used in the console output looking for a message like  'Liberty debug port: [ 63624 ]'.");
-    }
-
-    private class DataHolder {
-        boolean started;
+        throw new Exception(Messages.getMessage("debugger_timeout_error", host, port));
     }
 }

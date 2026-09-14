@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -26,13 +26,12 @@ import org.eclipse.jdt.debug.ui.launchConfigurations.JavaJRETab;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -54,7 +53,7 @@ public class JRETab extends JavaJRETab {
         java.nio.file.Path javacPath = Paths.get(javaHome, "bin", (Utils.isWindows() ? "javac.exe" : "javac"));
         File javacFile = javacPath.toFile();
         if (!javacFile.exists()) {
-            super.setErrorMessage("A Java Development Kit (JDK) is required to use Liberty dev mode.");
+            super.setErrorMessage(Messages.getMessage("jdk_required_error"));
             return false;
         }
         return true;
@@ -81,7 +80,7 @@ public class JRETab extends JavaJRETab {
             }
         } catch (Exception e) {
             ErrorHandler.processWarningMessage(
-                                               NLS.bind(Messages.java_default_set_error, new String[] { activeProject.getName(), configuration.getName() }), e);
+                                               Messages.getMessage("java_default_set_error", activeProject.getName(), configuration.getName()), e);
         }
 
         super.setDefaults(configuration);
@@ -109,7 +108,7 @@ public class JRETab extends JavaJRETab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.java_resolution_error, configuration.getName()), e);
+            ErrorHandler.processWarningMessage(Messages.getMessage("java_resolution_error", configuration.getName()), e);
         }
 
         if (keyValue != null) {
@@ -141,12 +140,20 @@ public class JRETab extends JavaJRETab {
         IProject jIProject = iProject;
         if (!iProject.hasNature(JavaCore.NATURE_ID)) {
             DevModeOperations devModeOps = DevModeOperations.getInstance();
-            WorkspaceProjectsModel model = devModeOps.getProjectModel();
-            Project project = model.getProject(iProject.getName());
-            Project associatedJavaProject = project.getAssociatedJavaProject(project);
+            WorkspaceModel workspaceModel = devModeOps.getWorkspaceModel();
+            String projectLocation = iProject.getLocation().toOSString();
+            ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
+            
+            // Validate that we know about the selected project.
+            if (projectModel == null) {
+                throw new IllegalStateException(Messages.getMessage("internal_project_not_found", iProject.getName()));
+            }
+
+            ProjectModel associatedJavaProject = projectModel.getAssociatedJavaProject(projectModel);
             if (associatedJavaProject == null) {
                 return null;
             }
+
             jIProject = associatedJavaProject.getIProject();
         }
 

@@ -53,6 +53,8 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 |  25.0.8       | 2025-06 - Eclipse v4.36 |
 |  25.0.12      | 2025-09 - Eclipse v4.37 |
 |  26.0.2      	| 2025-12 - Eclipse v4.38 |
+|  26.0.8      	| 2026-03 - Eclipse v4.39 |
+|  26.0.9      	| 2026-06 - Eclipse v4.40 |
 
 **NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
@@ -104,9 +106,9 @@ If using the dev mode in containers (devc) function, you must add the 'docker' e
    
 ## Opening the Liberty dashboard view
 
-Click the Open Liberty icon on the toolbar.
+Click the Liberty icon on the toolbar.
 
-![Dashboard context menu for Maven Project with Open Liberty icon](images/openLibertyIconOnToolbar.png)
+![Dashboard context menu for Maven Project with Liberty icon](images/openLibertyIconOnToolbar.png)
 
 If projects exist that are already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the dashboard when it opens.
 

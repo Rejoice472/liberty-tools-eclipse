@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,13 +20,12 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.LibertyNature;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -57,7 +56,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg);
             }
 
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_not_valid, null), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("project_not_valid"), true);
 
             return null;
         }
@@ -68,12 +67,12 @@ public class ExplorerMenuHandler extends AbstractHandler {
         try {
             commandName = command.getName();
         } catch (Exception e) {
-            String msg = "Unable to retrieve menu command.";
+            String msg = Messages.getMessage("menu_command_retrieve_error");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg, e);
             }
 
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.menu_command_retrieve_error, null), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return null;
         }
 
@@ -93,7 +92,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
 
                 switch (commandName) {
                     case ADD_NATURE_ACTION:
-                        Project.addNature(iProject, LibertyNature.NATURE_ID);
+                        ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
                         break;
                     default:
                         throw new Exception("invalid command");
@@ -106,7 +105,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 }
 
                 ErrorHandler.processErrorMessage(
-                                                 NLS.bind(Messages.menu_command_process_error, new String[] { commandName, iProject.getName() }), e);
+                                                 Messages.getMessage("menu_command_process_error", commandName, iProject.getName()), e);
             }
         }
 

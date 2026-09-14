@@ -1,13 +1,14 @@
 Manifest-Version: 1.0
-Bundle-Copyright: Copyright (c) 2022, 2025 IBM Corporation and others.
+Bundle-Copyright: Copyright (c) 2022, 2026 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: Liberty Tools UI
 Bundle-Vendor: Open Liberty
 Bundle-SymbolicName: io.openliberty.tools.eclipse.ui;singleton:=true
-Bundle-Version: 26.0.2.qualifier
+Bundle-Version: 26.0.9.qualifier
 Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
 Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.debug;x-friends:="io.openliberty.tools.eclipse.tests",
+ io.openliberty.tools.eclipse.model;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.dashboard;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.launch;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests",
@@ -19,7 +20,8 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
-Import-Package: org.eclipse.cdt.launch.ui,
+Import-Package: org.eclipse.buildship.core,
+ org.eclipse.cdt.launch.ui,
  org.eclipse.core.commands,
  org.eclipse.core.expressions,
  org.eclipse.core.resources,
@@ -33,6 +35,10 @@ Import-Package: org.eclipse.cdt.launch.ui,
  org.eclipse.debug.ui,
  org.eclipse.debug.ui.actions,
  org.eclipse.debug.ui.sourcelookup,
+ org.eclipse.e4.core.di.annotations,
+ org.eclipse.e4.ui.model.application,
+ org.eclipse.e4.ui.model.application.ui,
+ org.eclipse.e4.ui.model.application.ui.advanced,
  org.eclipse.jdi,
  org.eclipse.jdt.core,
  org.eclipse.jdt.debug.core,
@@ -47,7 +53,12 @@ Import-Package: org.eclipse.cdt.launch.ui,
  org.eclipse.osgi.util,
  org.eclipse.swt.custom,
  org.eclipse.ui.console,
+ org.eclipse.ui.forms.events,
+ org.eclipse.ui.forms.widgets,
+ org.eclipse.ui.dialogs,
  org.gradle.tooling,
  org.gradle.tooling.model,
  org.gradle.tooling.model.eclipse,
  org.osgi.framework
+Bundle-ClassPath: libs/json-20250107.jar,
+ .

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,6 +24,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.LibertyPrefDirectoryFieldEditor;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -37,6 +38,9 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
         super(GRID);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void createFieldEditors() {
 
@@ -48,25 +52,28 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void init(IWorkbench workbench) {
         // second parameter is typically the plug-in id
         setPreferenceStore(new ScopedPreferenceStore(InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui"));
-        setDescription(
-                       "Use the Browse buttons to specify the Maven and Gradle installation locations to be used for starting the application in dev mode, which will be used if no mvnw/gradlew wrapper is found.");
+        setDescription(Messages.getMessage("preference_page_description"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void propertyChange(PropertyChangeEvent event) {
         // Will be called upon any preference update
         // Must check the validation of both fields in order to output
         // the correct error message if needed
-        //
         boolean isMvn;
         boolean installMvnLocValid = false;
         boolean installGradleLocValid = false;
 
-        String eventProp = event.getProperty();
         if (event.getProperty().equals("field_editor_value")) {
             // field for which validation is required
             if (event.getSource() == mvnInstallFE) {
@@ -91,11 +98,11 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
             else {
                 setValid(false);
                 if (!installMvnLocValid && !installGradleLocValid) {
-                    setErrorMessage("Install locations must contain mvn and gradle executables");
+                    setErrorMessage(Messages.getMessage("mvn_gradle_exec_error"));
                 } else if (!installMvnLocValid && installGradleLocValid) {
-                    setErrorMessage("Install location must contain a bin directory containing a mvn executable");
+                    setErrorMessage(Messages.getMessage("mvn_exec_error"));
                 } else {
-                    setErrorMessage("Install location must contain a bin directory containing a gradle executable");
+                    setErrorMessage(Messages.getMessage("gradle_exec_error"));
                 }
             }
         }
